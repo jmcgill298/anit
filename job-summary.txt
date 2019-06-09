@@ -1,14 +1,18 @@
 Configuration Build Testing Job Summary
-   -> Ansible Version: 2.7.10
-   -> Python Version: python3.6
+   -> Ansible Version: 2.7.7
+   -> Python Version: python3
 -------------------------------------------------------------
 
-**INFO: FEATURE bgp        TEST: test_01    ---------> PASSED    
-**INFO: FEATURE bgp        TEST: test_02    ---------> PASSED    
-**INFO: FEATURE vlans      TEST: test_01    ---------> PASSED    
-**INFO: FEATURE vlans      TEST: test_02    ---------> FAILED    
---- tests/vlans/test_02/expected_config.cfg
-+++ outputs/vlans/test_02/generated_config.cfg
+**INFO: FEATURE bgp        HOST: sw01       ---------> PASSED    
+**INFO: FEATURE bgp        HOST: sw02       ---------> PASSED    
+**INFO: FEATURE bgp        HOST: sw03       ---------> FAILED    
+AnsibleUndefinedVariable: 'router_id' is undefined
+
+
+**INFO: FEATURE vlans      HOST: sw01       ---------> PASSED    
+**INFO: FEATURE vlans      HOST: sw02       ---------> FAILED    
+--- tests/config_gen/mocks/vlans/sw02.cfg
++++ tests/outputs/vlans/sw02/vlans/sw02.cfg
 @@ -2,5 +2,5 @@
    name web
  vlan 20
@@ -16,8 +20,8 @@ Configuration Build Testing Job Summary
 -vlan 30
 +vlan 300
    name db
-**INFO: FEATURE vlans      TEST: test_03    ---------> FAILED    
+**INFO: FEATURE vlans      HOST: sw03       ---------> FAILED    
 AnsibleUndefinedVariable: 'dict object' has no attribute 'name'
 
-Summary: 5 data files tested
+Summary: 2 features tested for 3 hosts
 

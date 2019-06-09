@@ -1,0 +1,2 @@
+---
+config_output_path: "{{ playbook_dir }}/outputs/configs/{{ inventory_hostname }}/features/"

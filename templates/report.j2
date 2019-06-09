@@ -1,10 +1,14 @@
-{% if 'passed' in assert_result.get('msg', '') %}
-{% set status = "PASSED" %}
-{% else %}
-{% set status = "FAILED" %}
-{% endif %}
-**INFO: FEATURE {{ feature.ljust(10) }} TEST: {{ test_name.ljust(10) }} ---------> {{ status.ljust(10) }}
-{% if status == "FAILED" %}
-{% set diff = lookup('file', './{{ test_path }}/test_results.cfg' ) %}
+#jinja2: lstrip_blocks: True
+{% for host in ansible_play_hosts | sort %}
+  {% if 'passed' in hostvars[host]['assert_result'].get('msg', '') %}
+  {% set status = "PASSED" %}
+  {% else %}
+  {% set status = "FAILED" %}
+  {% endif %}
+**INFO: FEATURE {{ mock_dir.ljust(10) }} HOST: {{ host.ljust(10) }} ---------> {{ status.ljust(10) }}
+  {% if status == "FAILED" %}
+  {% set diff = lookup('file', output_dir ~ '/' ~ mock_dir ~ '/' ~ host ~ '/test_results.cfg') %}
 {{ diff }}
-{% endif %}
+  {% endif %}
+{% endfor %}
+

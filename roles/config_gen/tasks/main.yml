@@ -1,0 +1,23 @@
+---
+- name: "ENSURE OUTPUT DIRECTORY EXISTS"
+  file:
+    state: "directory"
+    path: "{{ config_output_path }}"
+  delegate_to: "localhost"
+
+- name: "GENERATE CONFIG FILES"
+  template:
+    src: "{{ lookup('first_found', file_paths) }}"
+    dest: "{{ config_output_path }}/{{ feature }}.cfg"
+  loop: "{{ features }}"
+  loop_control:
+    loop_var: "feature"
+  vars:
+    file_paths:
+      files: "{{ feature }}.j2"
+      paths:    
+        - "templates/{{ vendor }}/{{ ansible_network_os }}/{{ platform }}/{{ family }}/defaults"
+        - "templates/{{ vendor }}/{{ ansible_network_os }}/{{ platform }}/defaults"
+        - "templates/{{ vendor }}/{{ ansible_network_os }}/defaults"
+        - "templates/{{ vendor }}/defaults"
+  delegate_to: "localhost"

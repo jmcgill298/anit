@@ -1,0 +1,9 @@
+---
+- hosts: "cisco"
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: "config_gen"
+      vars:
+        features: ["bgp", "vlans"]
+

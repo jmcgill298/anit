@@ -1,0 +1,2 @@
+vendor: "cisco"
+ansible_connection: "network_cli"

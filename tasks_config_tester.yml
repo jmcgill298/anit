@@ -1,73 +1,74 @@
 ---
 
-  # test_file is name of the data yaml file
+  # mock_dir is name of the config feature being tested
   # the initating loop can be found in 
   # the playbook iterating over all data files
   # look for MAIN: EXECUTE ALL TESTS task
-  - name: "TASKS: TESTING BEGINNING"
+  - name: "{{ mock_dir | upper }}-> SET PATH"
     set_fact:
-      # path = tests/vlans/test_01/data.yml
-      feature: "{{ test_file.path.split('/')[1] }}"
-      test_name: "{{ test_file.path.split('/')[2] }}"
-      data_file: "{{ test_file.path }}"
+      test_path: "{{ output_dir }}/{{ mock_dir }}/{{ inventory_hostname }}"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> LOAD DATA"
-    include_vars:
-      file: "{{ data_file }}"
-
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> SET PATH"
-    set_fact:
-      test_path: "{{ output_dir }}/{{ feature }}/{{ test_name }}"
-
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> CREATE DIRECTORY STRUCTURE"
+  - name: "{{ mock_dir | upper }}-> CREATE DIRECTORY STRUCTURE"
     file:
-      path: "{{ test_path }}"
+      path: "{{ test_path }}/{{ mock_dir }}"
       state: "directory"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> GENERATE {{ feature | upper }} CONFIG"
+  - name: "{{ mock_dir | upper }}-> GENERATE CONFIG"
     template:
       src: "{{ lookup('first_found', file_paths) }}"
-      dest: "./{{ test_path }}/generated_config.cfg"
+      dest: "./{{ test_path }}/{{ mock_dir }}/{{ inventory_hostname }}.cfg"
     vars:
       file_paths:
-        files: "{{ feature }}.j2"
+        files: "{{ mock_dir }}.j2"
         paths:
-          - "{{ test_dir }}/{{ feature }}/{{ test_name }}"
-          - "{{ template_dir }}/{{ meta['vendor'] }}/{{ meta['os'] }}/{{ meta.get('platform') }}/{{ meta.get('family') }}/{{ meta.get('model') }}"
-          - "{{ template_dir }}/{{ meta['vendor'] }}/{{ meta['os'] }}/{{ meta.get('platform') }}/{{ meta.get('family') }}/defaults"
-          - "{{ template_dir }}/{{ meta['vendor'] }}/{{ meta['os'] }}/{{ meta.get('platform') }}/defaults"
-          - "{{ template_dir }}/{{ meta['vendor'] }}/{{ meta['os'] }}/defaults"
-          - "{{ template_dir }}/{{ meta['vendor'] }}/defaults"
+          - "{{ test_dir }}/config_gen/templates"
+          - "{{ template_dir }}/{{ vendor }}/{{ ansible_network_os }}/{{ platform | default('') }}/{{ family | default('') }}/{{ model | default('') }}"
+          - "{{ template_dir }}/{{ vendor }}/{{ ansible_network_os }}/{{ platform | default('') }}/{{ family | default('') }}/defaults"
+          - "{{ template_dir }}/{{ vendor }}/{{ ansible_network_os }}/{{ platform | default('') }}/defaults"
+          - "{{ template_dir }}/{{ vendor }}/{{ ansible_network_os }}/defaults"
+          - "{{ template_dir }}/{{ vendor }}/defaults"
           - "./"
     ignore_errors: true
     register: "template_status"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> COMPARE EXPECTED TO TEST RESULTS"
+  - name: "{{ mock_dir | upper }}-> COMPARE EXPECTED TO TEST RESULTS"
     ntc_differ:
-      pre_change: "{{ test_dir }}/{{ feature }}/{{ test_name }}/expected_config.cfg"
-      post_change: "{{ test_path }}/generated_config.cfg"
+      pre_change: "{{ mock_path }}/{{ mock_dir }}/{{ inventory_hostname }}.cfg"
+      post_change: "{{ test_path }}/{{ mock_dir }}/{{ inventory_hostname }}.cfg"
       dest: "./{{ test_path }}/test_results.cfg"
     register: "diff"
     when: "template_status['changed']"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> TEMPLATE FAILURE TO TEST RESULTS"
+  - name: "{{ mock_dir | upper }}-> TEMPLATE FAILURE TO TEST RESULTS"
     copy:
       content: "{{ template_status['msg'] }}"
       dest: "./{{ test_path }}/test_results.cfg"
     when: "template_status is failed"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> SHOW THE DIFF"
+  - name: "{{ mock_dir | upper }}-> SHOW THE DIFF"
     debug:
       var: "diff.diff_output"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> ASSERT THAT THERE IS NO DIFF"
+  - name: "{{ mock_dir | upper }}-> ASSERT THAT THERE IS NO DIFF"
     assert:
       that: 
         - "diff.diff_output == ''"
     ignore_errors: true
     register: "assert_result"
+    delegate_to: "localhost"
 
-  - name: "{{ feature | upper }}: {{ test_name | upper }}-> GENERATE TEST LOG"
+  - debug: var=ansible_play_hosts
+    delegate_to: localhost
+
+  - name: "{{ mock_dir | upper }}-> GENERATE TEST LOG"
     template:
       src: "report.j2"
-      dest: "{{ output_dir }}/reports/{{ feature }}_{{ test_name }}.txt"
+      dest: "{{ output_dir }}/reports/{{ mock_dir }}.txt" #_{{ inventory_hostname }}.txt"
+    delegate_to: "localhost"
+    run_once: true

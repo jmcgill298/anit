@@ -1,0 +1,4 @@
+---
+ansible_network_os: "nxos"
+platform: "nxos"
+

@@ -1,13 +1,9 @@
 ---
-
-meta:
-  os: ios
-  vendor: cisco
-
+router_id: "1.1.1.1"
 vlans:
   - id: 10
     name: web
   - id: 20
     name: app
-  - id: 300
+  - id: 30
     name: db

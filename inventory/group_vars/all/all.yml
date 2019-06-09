@@ -1,0 +1,5 @@
+ansible_python_interpreter: "python"
+
+bgp:
+  asn: 65512
+  rid: "{{ router_id }}"
